@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class MapHelper {
 
-    // Zaehlen
+    // Variables for counting the steps/direction
     public Map<Integer, Integer> goodStepCounter;
     public Map<Integer, Integer> neutralStepCounter;
     public Map<Integer, Integer> poisonStepCounter;
@@ -15,7 +15,7 @@ public class MapHelper {
     public Map<Integer, Integer> neutralDirectionCounter;
     public Map<Integer, Integer> poisonDirectionCounter;
 
-    // Berechnung
+    // Variables for calculating the overall probability
     public Map<Integer, Double> goodStepProbability;
     public Map<Integer, Double> neutralStepProbability;
     public Map<Integer, Double> poisonStepProbability;
@@ -39,6 +39,12 @@ public class MapHelper {
         poisonDirectionProbability = new LinkedHashMap<>();
     }
 
+    /**
+     * Adds the step difference to the map and increments the amount
+     *
+     * @param preyType which prey type
+     * @param stepDiff step amount
+     */
     public void addSteps(PreyType preyType, int stepDiff) {
         if (preyType == PreyType.GOOD) {
             goodStepCounter.put(stepDiff, goodStepCounter.getOrDefault(stepDiff, 0) + 1);
@@ -49,6 +55,12 @@ public class MapHelper {
         }
     }
 
+    /**
+     * Adds the heading direction to the map and increments the amount
+     *
+     * @param preyType which prey type
+     * @param direction direction
+     */
     public void addDirection(PreyType preyType, int direction) {
         if (preyType == PreyType.GOOD) {
             goodDirectionCounter.put(direction, goodDirectionCounter.getOrDefault(direction, 0) + 1);
@@ -59,33 +71,39 @@ public class MapHelper {
         }
     }
 
+    /**
+     * calculates the probabilities for every type
+     *
+     * gets the total amount for a specific type and step/direction and divides it by the total amount
+     *
+     */
     public void calculateProbabilities() {
-        // Summe an gezaehlten Werten pro Klasse
-        // -> Hier werden alle Werte mit 1 addiert, um Rechenfehler zu vermeiden
-        int totalGoodCount = goodStepCounter.values().stream().reduce(0, Integer::sum) + 1;
-        int totalNeutralCount = neutralStepCounter.values().stream().reduce(0, Integer::sum) + 1;
-        int totalPoisonousCount = poisonStepCounter.values().stream().reduce(0, Integer::sum) + 1;
-        int totalGoodHeadingCount = goodDirectionCounter.values().stream().reduce(0, Integer::sum) +1;
-        int totalNeutralHeadingCount = neutralDirectionCounter.values().stream().reduce(0, Integer::sum) +1;
-        int totalPoisonousHeadingCount = poisonDirectionCounter.values().stream().reduce(0, Integer::sum) +1;
 
-        // hoechster Key (Laengste Schrittfolge) wird ermittelt
-        int highestKeyObservation = Math.max(goodStepCounter.get(goodStepCounter.keySet().size()),
+        int totalGoodSteps = goodStepCounter.values().stream().reduce(0, Integer::sum);
+        int totalNeutralSteps = neutralStepCounter.values().stream().reduce(0, Integer::sum);
+        int totalPoisonSteps = poisonStepCounter.values().stream().reduce(0, Integer::sum);
+        int totalGoodDirection = goodDirectionCounter.values().stream().reduce(0, Integer::sum);
+        int totalNeutralDirection = neutralDirectionCounter.values().stream().reduce(0, Integer::sum);
+        int totalPoisonDirection = poisonDirectionCounter.values().stream().reduce(0, Integer::sum);
+
+        // get the highest counter, so we can iterate through all
+        int highestCounter = Math.max(goodStepCounter.get(goodStepCounter.keySet().size()),
                 Math.max(neutralStepCounter.get(neutralStepCounter.keySet().size()), poisonStepCounter.get(poisonStepCounter.keySet().size())));
 
 
-        // Wahrscheinlichkeiten werden eingetragen
-        // -> Hier werden alle Werte mit 1 addiert, um Rechenfehler zu vermeiden
-        for (int i = 1; i <= highestKeyObservation; i++) {
-            goodStepProbability.put(i, (goodStepCounter.getOrDefault(i, 0) + 1) / (double) totalGoodCount);
-            neutralStepProbability.put(i, (neutralStepCounter.getOrDefault(i, 0) + 1) / (double) totalNeutralCount);
-            poisonStepProbability.put(i, (poisonStepCounter.getOrDefault(i, 0) + 1) / (double) totalPoisonousCount);
+        // and add them to the map
+        // steps
+        for (int i = 1; i <= highestCounter; i++) {
+            goodStepProbability.put(i, (goodStepCounter.getOrDefault(i, 0)) / (double) totalGoodSteps);
+            neutralStepProbability.put(i, (neutralStepCounter.getOrDefault(i, 0)) / (double) totalNeutralSteps);
+            poisonStepProbability.put(i, (poisonStepCounter.getOrDefault(i, 0)) / (double) totalPoisonSteps);
         }
 
+        // direction
         for (int i = 0; i <= 360; i += 90) {
-            goodDirectionProbability.put(i, (goodDirectionCounter.getOrDefault(i,0)+1) / (double) totalGoodHeadingCount);
-            neutralDirectionProbability.put(i, (neutralDirectionCounter.getOrDefault(i,0)+1) / (double) totalNeutralHeadingCount);
-            poisonDirectionProbability.put(i, (poisonDirectionCounter.getOrDefault(i,0)+1) / (double) totalPoisonousHeadingCount);
+            goodDirectionProbability.put(i, (goodDirectionCounter.getOrDefault(i,0)+1) / (double) totalGoodDirection);
+            neutralDirectionProbability.put(i, (neutralDirectionCounter.getOrDefault(i,0)+1) / (double) totalNeutralDirection);
+            poisonDirectionProbability.put(i, (poisonDirectionCounter.getOrDefault(i,0)+1) / (double) totalPoisonDirection);
         }
     }
 
